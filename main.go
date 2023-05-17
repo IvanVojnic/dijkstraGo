@@ -2,11 +2,11 @@ package main
 
 import (
 	"container/heap"
-	"context"
 	"fmt"
 	"lab3/models"
 	"lab3/repository"
 	"os"
+	"strconv"
 )
 
 type PriorityQueue []models.Сrossroad
@@ -81,7 +81,7 @@ func main() {
 	}
 	defer fileWrite.Close()
 	repos := repository.NewFileRepo(fileRead, fileWrite)
-	graph, condition, err := repos.GetCrossroads(context.Background())
+	graph, condition, err := repos.GetCrossroads()
 	if err != nil {
 		fmt.Errorf("error while get crossroads - %v", err)
 	}
@@ -98,7 +98,15 @@ func main() {
 	result := dijkstra(graph, condition.S-1, condition.F-1)
 	if result == -1 {
 		fmt.Printf("No")
+		err = repos.PrintResult("No")
+		if err != nil {
+			fmt.Print(err)
+		}
 	} else {
-		fmt.Printf("Yes - %v", 12)
+		fmt.Printf("Yes - %v", result)
+		err = repos.PrintResult("Yes " + strconv.Itoa(result))
+		if err != nil {
+			fmt.Print(err)
+		}
 	}
 }

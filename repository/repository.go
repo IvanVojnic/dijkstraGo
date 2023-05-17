@@ -2,10 +2,10 @@ package repository
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"lab3/models"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -16,12 +16,26 @@ type FileRepo struct {
 	writer *os.File
 }
 
+type ObjectSlice []*models.Сrossroad
+
+func (s ObjectSlice) Len() int {
+	return len(s)
+}
+
+func (s ObjectSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s ObjectSlice) Less(i, j int) bool {
+	return s[i].CrossroadID < s[j].CrossroadID
+}
+
 // NewFileRepo used to init FileRepo
 func NewFileRepo(reader *os.File, writer *os.File) *FileRepo {
 	return &FileRepo{reader: reader, writer: writer}
 }
 
-func (fr *FileRepo) GetCrossroads(ctx context.Context) ([]*models.Сrossroad, *models.Condition, error) {
+func (fr *FileRepo) GetCrossroads() ([]*models.Сrossroad, *models.Condition, error) {
 	nodes := make(map[int]*models.Сrossroad)
 	var condition models.Condition
 	fileScanner := bufio.NewScanner(fr.reader)
@@ -128,6 +142,22 @@ func (fr *FileRepo) GetCrossroads(ctx context.Context) ([]*models.Сrossroad, *m
 		}
 		nodesArr = append(nodesArr, node)
 	}
-
+	sort.Sort(ObjectSlice(nodesArr))
 	return nodesArr, &condition, nil
+}
+
+func (fr *FileRepo) PrintResult(result string) error {
+	file, err := os.Create("output.txt")
+	if err != nil {
+		return fmt.Errorf("error creating file - %v", err)
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+	_, err = writer.WriteString(result)
+	if err != nil {
+		return fmt.Errorf("error writing to file - %v", err)
+	}
+
+	writer.Flush()
+	return nil
 }
